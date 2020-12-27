@@ -1,4 +1,8 @@
 Include/
 Lib/
 Scripts/
+__pycache__
+asyncache
 pyvenv.cfg
+test_creds.json
+test.py
