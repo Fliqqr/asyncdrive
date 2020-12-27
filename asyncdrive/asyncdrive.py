@@ -6,7 +6,7 @@ import json
 import os
 
 from pathlib import Path
-from utils import create_jwt
+from .utils import create_jwt
 
 parent_directory = Path(__file__).resolve().parent
 
@@ -32,8 +32,8 @@ class AsyncRequest:
         try:
             if str(self.request.status)[0] != '2':
                 raise Exception(
-                    f"Error {self.request.status}: {await self.request.content.read()}"
-                    f"Request: {self.args} {self.kwargs}, "
+                    "Error {}: {}".format(self.request.status, await self.request.content.read()),
+                    f"Request: {self.args} {self.kwargs}, ",
                     f"Headers: {self.drive.session._default_headers}"
                 )
             elif traceback:

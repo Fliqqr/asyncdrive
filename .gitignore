@@ -1,8 +1,12 @@
 Include/
 Lib/
 Scripts/
+asyncdrive.egg-info
+build
+dist
 __pycache__
 asyncache
 pyvenv.cfg
 test_creds.json
 test.py
+setup.py
