@@ -10,8 +10,8 @@ from .utils import create_jwt
 
 parent_directory = Path(__file__).resolve().parent
 
-if not os.path.exists(f"{parent_directory}/asyncache"):
-    os.makedirs(f"{parent_directory}/asyncache")
+# if not os.path.exists(f"{parent_directory}/asyncache"):
+#     os.makedirs(f"{parent_directory}/asyncache")
 
 
 class AsyncRequest:
@@ -86,7 +86,8 @@ class AsyncFile:
     async def __aexit__(self, type, value, traceback):
         try:
             if not traceback:
-                self.cache_file(self.file.getvalue())
+                if self.drive.cache:
+                    self.cache_file(self.file.getvalue())
 
                 if hasattr(self, 'pending_delete'):
                     # print('Deleting file:', self.file_name)
@@ -94,11 +95,11 @@ class AsyncFile:
 
                 elif 'w' in self.mode and not self.file_id:
                     # print('Creating file:', self.file_name)
-                    await self.drive.create(self.cache_location, **self.metadata_)
+                    await self.drive.create(self.file.getvalue(), **self.metadata_)
 
                 elif any(item in self.mode for item in ['w', '+']) and self.file_id:
                     # print('Updating file:', self.file_name)
-                    await self.drive.update(self.file_id, self.cache_location, **self.metadata_)
+                    await self.drive.update(self.file_id, self.file.getvalue(), **self.metadata_)
             else:
                 raise Exception(traceback)
         finally:
@@ -112,6 +113,8 @@ class AsyncFile:
             self.metadata_[key] = value
 
     def cache_file(self, value):
+        if not os.path.exists(f"{parent_directory}/asyncache"):
+            os.makedirs(f"{parent_directory}/asyncache")
         with io.open(self.cache_location, 'wb' if 'b' in self.mode else 'w') as file:
             file.write(value)
 
@@ -239,8 +242,12 @@ class AsyncDrive:
         return metadata, headers
 
     def media_request(self, filePath):
-        with open(filePath, 'rb') as file:
-            data = file.read()
+        # with open(filePath, 'rb') as file:
+        #     data = file.read()
+        if type(filePath) == str:
+            file_data = bytes(filePath, encoding='utf-8')
+        else:
+            file_data = filePath
         headers = {
             'Content-Length': str(len(data)),
             'Content-Type': 'application/octet-stream'
@@ -248,8 +255,12 @@ class AsyncDrive:
         return data, headers
 
     def multipart_request(self, filePath, metaData):
-        with open(filePath, "rb") as file:
-            file_data = file.read()
+        # with open(filePath, "rb") as file:
+        #     file_data = file.read()
+        if type(filePath) == str:
+            file_data = bytes(filePath, encoding='utf-8')
+        else:
+            file_data = filePath
 
         boundary = b"------123456"
         delim = b"\n--" + boundary + b"\n"
