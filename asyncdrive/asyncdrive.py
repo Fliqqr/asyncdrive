@@ -72,9 +72,9 @@ class AsyncFile:
 
         elif self.file_id:
             if self.drive.cache and os.path.exists(self.cache_location):
-                with io.open(self.cache_location, 'rb') as file:
-                    self.file = io.BytesIO(file.read()) if 'b' in self.mode else io.StringIO(
-                        file.read().decode('utf-8'))
+                with io.open(self.cache_location, self.mode) as file:
+                    content = file.read()
+                    self.file = io.BytesIO(content) if 'b' in self.mode else io.StringIO(content)
             else:
                 bytes = await self.drive.get(self.file_id)
                 self.file = io.BytesIO(bytes) if 'b' in self.mode else io.StringIO(bytes.decode('utf-8'))
