@@ -1,6 +1,7 @@
 Include/
 Lib/
 Scripts/
+test/
 asyncdrive.egg-info
 build
 dist
@@ -8,4 +9,3 @@ __pycache__
 pyvenv.cfg
 test_creds.json
 test.py
-setup.py
