@@ -4,6 +4,7 @@ import datetime
 import io
 import json
 import os
+import shutil
 
 from pathlib import Path
 from .utils import create_jwt
@@ -279,3 +280,8 @@ class AsyncDrive:
             "Content-Length": str(len(data))
         }
         return data, headers
+
+    def clear_cache(self):
+        if os.path.exists(f"{parent_directory}/asyncache") and self.cache:
+            shutil.rmtree(f"{parent_directory}/asyncache", ignore_errors=True)
+        os.makedirs(f"{parent_directory}/asyncache")
