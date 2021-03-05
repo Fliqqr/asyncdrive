@@ -8,4 +8,4 @@ supports service accounts only, use at your own discretion.
 
 from .asyncdrive import AsyncDrive
 
-__version__ = "1.0.3"
+__version__ = "1.2.0"
