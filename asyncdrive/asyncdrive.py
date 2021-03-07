@@ -160,7 +160,7 @@ class ResumableUploadSession:
         self.collected_bytes += data
 
         async with self.lock:
-            await self._upload()
+            return await self._upload()
 
     async def _upload(self):
         error_counter = 0
@@ -183,10 +183,13 @@ class ResumableUploadSession:
                     if response.status == 308:
                         self.uploaded += len(data_to_upload)
                         error_counter = 0
+
                     elif response.status in (200, 201):
-                        return None
+                        return await response.json()
+
                     else:
                         error_counter += 1
+                        
                 if error_counter >= self.max_retries:
                     raise Exception('Upload interrupted')
             else:
@@ -266,8 +269,8 @@ class AsyncDrive:
     def open(self, file_name, mode='r'):
         return AsyncFile(self, file_name, mode)
 
-    def resumable_upload(self, content_length, *_, **kwargs):
-        return ResumableUploadSession(self, content_length, **kwargs)
+    def resumable_upload(self, content_length, *_, **metadata):
+        return ResumableUploadSession(self, content_length, **metadata)
 
     def clear_cache(self):
         if os.path.exists(f"{parent_directory}/asyncache") and self.cache:
