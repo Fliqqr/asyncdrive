@@ -189,7 +189,7 @@ class ResumableUploadSession:
 
                     else:
                         error_counter += 1
-                        
+
                 if error_counter >= self.max_retries:
                     raise Exception('Upload interrupted')
             else:
@@ -277,10 +277,8 @@ class AsyncDrive:
             shutil.rmtree(f"{parent_directory}/asyncache", ignore_errors=True)
         os.makedirs(f"{parent_directory}/asyncache")
 
-    async def get(self, file_id, fields=None, download=True):
-        params = f"?{'alt=media' if download else ''}" + \
-                 f"{'&' if fields and download else ''}" + \
-                 f"{('fields=' + ','.join(fields)) if fields else ''}"
+    async def get(self, file_id, fields=[]):
+        params = f"?{'alt=media' if not fields else ('fields=' + ','.join(fields))}"
         request_data = {
             'method': 'GET',
             'url': f'https://www.googleapis.com/drive/v3/files/{file_id}' + params
@@ -309,7 +307,10 @@ class AsyncDrive:
 
     async def create(self, data=None, *_, **kwargs):
 
-        upload_type = kwargs.get('upload_type', 'metadata')
+        upload_type = {
+            2: 'metadata', 3: 'media', 6: 'multipart'
+        }[(2 if kwargs else 1) * (3 if data else 1)]
+
         data, headers = self.request_types[upload_type](data=data, metadata=kwargs)
 
         request_data = {
