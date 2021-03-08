@@ -165,7 +165,7 @@ class ResumableUploadSession:
     async def _upload(self):
         error_counter = 0
         while True:
-            data_to_upload = self.collected_bytes[self.uploaded:self.uploaded + CHUNK_SIZE + 1]
+            data_to_upload = self.collected_bytes[self.uploaded:self.uploaded + CHUNK_SIZE]
             content_length = len(data_to_upload)
 
             if content_length == CHUNK_SIZE or self.data_length == len(self.collected_bytes):
@@ -311,29 +311,32 @@ class AsyncDrive:
             2: 'metadata', 3: 'media', 6: 'multipart'
         }[(2 if kwargs else 1) * (3 if data else 1)]
 
-        data, headers = self.request_types[upload_type](data=data, metadata=kwargs)
+        _data, _headers = self.request_types[upload_type](data=data, metadata=kwargs)
 
         request_data = {
             'method': 'POST',
             'url': f"https://www.googleapis.com/{'upload/' if data else ''}drive/v3/files",
             'params': f"uploadType={upload_type}",
-            'headers': headers,
-            'data': data
+            'headers': _headers,
+            'data': _data
         }
         async with self.request(**request_data) as response:
             return await response.content.read()
 
     async def update(self, file_id, data=None, *_, **kwargs):
 
-        upload_type = kwargs.get('upload_type', 'metadata')
-        data, headers = self.request_types[upload_type](data, kwargs)
+        upload_type = {
+            2: 'metadata', 3: 'media', 6: 'multipart'
+        }[(2 if kwargs else 1) * (3 if data else 1)]
+
+        _data, _headers = self.request_types[upload_type](data=data, metadata=kwargs)
 
         request_data = {
             'method': 'PATCH',
             'url': f"https://www.googleapis.com/{'upload/' if data else ''}drive/v3/files/{file_id}",
             'params': f"uploadType={upload_type}",
-            'headers': headers,
-            'data': data
+            'headers': _headers,
+            'data': _data
         }
         async with self.request(**request_data) as response:
             return await response.content.read()
@@ -347,7 +350,7 @@ class AsyncDrive:
         }
         return data, headers
 
-    def metadata_request(self, metadata, *_, **__):
+    def metadata_request(self, *_, metadata, **__):
         metadata = json.dumps(metadata).encode('utf-8')
         headers = {
              'Content-Length': str(len(metadata)),
@@ -355,7 +358,7 @@ class AsyncDrive:
         }
         return metadata, headers
 
-    def multipart_request(self, data, metadata, *_, **__):
+    def multipart_request(self, data, metadata):
         if type(data) == str:
             data = bytes(data, encoding='utf-8')
 
