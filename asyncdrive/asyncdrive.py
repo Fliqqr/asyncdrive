@@ -341,6 +341,15 @@ class AsyncDrive:
         async with self.request(**request_data) as response:
             return await response.content.read()
 
+    async def generate_ids(self, *_, **kwargs):
+        request_data = {
+            'method': 'GET',
+            'url': "https://www.googleapis.com/drive/v3/files/generateIds",
+            'params': '&'.join([f'{k}={v}' for k, v in kwargs.items()])
+        }
+        async with self.request(**request_data) as response:
+            return await response.content.read()
+
     def media_request(self, data, *_, **__):
         if type(data) == str:
             data = bytes(data, encoding='utf-8')
